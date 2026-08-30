@@ -1,0 +1,9 @@
+# Gerado por scripts/upload_oci.sh — substitua nos arquivos sql/external_tables/*.sql
+REGIAO=us-ashburn-1
+NAMESPACE=idnxdejel4kp
+BUCKET=datasus-raw
+
+SIHSUS: https://objectstorage.us-ashburn-1.oraclecloud.com/n/idnxdejel4kp/b/datasus-raw/o/processed/sihsus/*.parquet
+CNES: https://objectstorage.us-ashburn-1.oraclecloud.com/n/idnxdejel4kp/b/datasus-raw/o/processed/cnes/*.parquet
+SIM: https://objectstorage.us-ashburn-1.oraclecloud.com/n/idnxdejel4kp/b/datasus-raw/o/processed/sim/*.parquet
+SINASC: https://objectstorage.us-ashburn-1.oraclecloud.com/n/idnxdejel4kp/b/datasus-raw/o/processed/sinasc/*.parquet
