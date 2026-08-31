@@ -85,6 +85,8 @@ WHERE semaforo = 'VERMELHO' ORDER BY ipa DESC;
 
 Contrato mínimo: `VW_IPA_REGIAO (regiao_saude, ipa, semaforo)`, com `semaforo ∈ {VERDE, AMARELO, VERMELHO}` e `ipa` numérico de 0 a 100.
 
+**A view existe e responde** — 62 de 62 regiões classificadas (29 verdes, 32 amarelas, 1 vermelha), sobre a janela móvel dos últimos 12 meses carregados. Junto dela, mais 6 views por região em `sql/03_gold/03_gld_regiao.sql`, com camada semântica de 116 comentários em `sql/04_select_ai/01_camada_semantica.sql`. O perfil `SUSRADAR` está criado, mas **o Select AI ainda não responde**: a tenancy tem cota zero no OCI Generative AI (serviço pago, fora do Always Free). Diagnóstico e as duas saídas em `docs/select-ai.md`.
+
 **Perguntas que o gestor precisa conseguir fazer** — casos de teste do modelo semântico:
 
 1. Quais regiões de SP estão em alerta vermelho neste mês?
@@ -135,7 +137,7 @@ SIH RD ≈ 240–250 mil internações/mês, 113 colunas, ~19 MB DBC → ~11 MB 
 
 Baixar pela Modalidade *Documentação* / *Arquivos auxiliares* de cada Fonte: CID-10, procedimentos SIGTAP, de/para municípios ↔ regiões de saúde de SP, tipos de leito/estabelecimento/natureza jurídica, e os dicionários de variáveis de cada sistema.
 
-> **Dependência dura:** todo o painel é agregado por **região de saúde**, e nenhuma base do DATASUS traz esse agrupamento — o SIH só tem código IBGE de município. Sem o de/para município → região de saúde de SP, **`VW_IPA_REGIAO` não existe**.
+> **Região de saúde — resolvido.** Todo o painel agrega por região de saúde e nenhum **microdado** traz esse agrupamento (o SIH só tem código IBGE de município). O de/para está em outra árvore do FTP: a **Base Territorial** em `ftp.datasus.gov.br/territorio/tabelas/<AAAA>/`, não em `/dissemin/publicos/`. Carregada por `scripts/territorio.py` — 645/645 municípios de SP em 62 regiões, 0 internações sem região. Traz também nome e coordenada do município, que o SIH não tem.
 
 ---
 
@@ -190,9 +192,9 @@ Caminhos FTP (`ftp.datasus.gov.br`):
 
 ```
 data/{raw,processed}         # dados — no .gitignore, nunca versionar
-scripts/                     # download_files.py (ingestão) · catalogo.py (inventário)
-sql/{external_tables,bronze,silver,gold}
-docs/                        # ingestao.md · catalogo-bases.md (gerado)
+scripts/                     # download_files.py (ingestão) · territorio.py (região de saúde) · catalogo.py
+sql/{00_setup,01_bronze,02_silver,03_gold,04_select_ai}
+docs/                        # ingestao.md · select-ai.md · catalogo-bases.md (gerado)
 notebooks/                   # 01_panorama_bases · 02_sih_demanda · 03_regiao_saude
 .claude/{skills,agents}/     # skills de OCI e o agent oci-engineer
 ```

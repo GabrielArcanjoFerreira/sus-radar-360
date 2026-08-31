@@ -10,6 +10,8 @@ FTP DATASUS ──► data/raw/*.dbc ──► data/processed/*.parquet ──�
                     ▼
             External Tables ──► BRONZE ──► SILVER ──► GOLD ──► Power BI / APEX / Select AI
             (DBMS_CLOUD)       materializada  tratada   painel
+                                              ▲
+                              Base Territorial ┘  regiao de saude, nome, coordenada
 ```
 
 ## Camadas
@@ -18,7 +20,7 @@ FTP DATASUS ──► data/raw/*.dbc ──► data/processed/*.parquet ──�
 |---|---|---|---|
 | Bronze | `BRONZE` | dado cru do DATASUS, tipos originais, códigos não traduzidos | 5 |
 | Silver | `SILVER` | datas em `DATE`, idade em anos, códigos resolvidos, flags derivadas | 6 + 6 domínios |
-| Gold | `GOLD` | fato do painel, agregado por `ano × mês × estabelecimento` | 2 |
+| Gold | `GOLD` | fato do painel e as views por região de saúde | 2 + 8 views |
 
 O dicionário completo de colunas está em [dicionario.md](dicionario.md).
 
@@ -97,4 +99,4 @@ Bucket é `NoPublicAccess` por obrigação: são microdados de saúde. O acesso 
 |---|---|
 | Power BI | `GOLD.VW_PAINEL_ASSISTENCIAL` — ver [powerbi.md](powerbi.md) |
 | APEX | `.../ords/apex` no mesmo ADB |
-| Select AI | pendente — precisa da `VW_IPA_REGIAO`, bloqueada pela região de saúde |
+| Select AI | perfil `SUSRADAR` sobre 7 views da Gold — ver [select-ai.md](select-ai.md) |

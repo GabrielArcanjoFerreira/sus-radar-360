@@ -79,6 +79,7 @@ Taxa de ocupação de leito no mês. Fórmula derivada por engenharia reversa da
 | [arquitetura.md](docs/arquitetura.md) | fluxo de ponta a ponta, camadas, infraestrutura OCI e segurança |
 | [dicionario.md](docs/dicionario.md) | toda coluna de Bronze, Silver e Gold — gerado do banco |
 | [ingestao.md](docs/ingestao.md) | como reproduzir a carga e as decisões tomadas |
+| [select-ai.md](docs/select-ai.md) | perguntas em linguagem natural: views expostas, camada semântica e o bloqueio de cota |
 | [catalogo-bases.md](docs/catalogo-bases.md) | inventário dos 33 arquivos baixados — gerado |
 | [gold.md](docs/gold.md) | fórmulas do IPA, limiares de risco e ressalvas |
 | [powerbi.md](docs/powerbi.md) | conectar o Power BI, passo a passo |
@@ -109,7 +110,8 @@ scripts/                ingestão, upload, geração de DDL e execução de SQL
 sql/00_setup/           usuários das camadas e credencial DBMS_CLOUD
 sql/01_bronze/          external tables sobre os Parquet
 sql/02_silver/          tratamento, domínios e dimensões
-sql/03_gold/            tabela do painel e rotina de carga
+sql/03_gold/            tabela do painel, rotina de carga e views por região
+sql/04_select_ai/       camada semântica e perfil do Select AI
 docs/                   documentação técnica
 notebooks/              exploração e validação
 data/{raw,processed}    dados — fora do git
@@ -128,6 +130,7 @@ data/{raw,processed}    dados — fora do git
 | `criar_credencial.py` | cria a credencial `DBMS_CLOUD` sem expor a chave |
 | `db.py` | executa SQL no ADB via wallet, mascarando segredos |
 | `gen_dicionario.py` | gera o dicionário de dados a partir do banco |
+| `territorio.py` | baixa a Base Territorial e carrega região de saúde, nome e coordenada dos municípios |
 
 ---
 
@@ -154,8 +157,17 @@ python3 -m venv .venv
 # 4. Silver
 .venv/bin/python scripts/db.py -u silver sql/02_silver/*.sql
 
-# 5. Gold
+# 5. Base Territorial — região de saúde, nome e coordenada do município
+.venv/bin/python scripts/territorio.py
+
+# 6. Gold
 .venv/bin/python scripts/db.py -u gold sql/03_gold/*.sql
+
+# 7. Select AI
+.venv/bin/python scripts/db.py -u admin sql/04_select_ai/00_habilita.sql
+.venv/bin/python scripts/db.py -u gold  sql/04_select_ai/01_camada_semantica.sql
+.venv/bin/python scripts/db.py -u gold  sql/04_select_ai/02_perfil.sql
+.venv/bin/python scripts/db.py -u gold  sql/04_select_ai/99_perguntas.sql
 ```
 
 Recarregar só a Gold, depois que a Silver mudar:
@@ -181,14 +193,20 @@ Conectar o Power BI: [docs/powerbi.md](docs/powerbi.md) → `GOLD.VW_PAINEL_ASSI
 | Silver | 6 tabelas + 6 domínios · sem perda de linhas |
 | Gold | `gld_painel_assistencial` · 14.789 linhas |
 | Power BI | conectável em `GOLD.VW_PAINEL_ASSISTENCIAL` |
+| Região de saúde | 645/645 municípios de SP em 62 regiões |
+| `VW_IPA_REGIAO` | 62 de 62 regiões classificadas em verde, amarelo e vermelho |
+| Select AI | montado e validado, **aguardando provedor de modelo** |
 | Vulnerabilidade social (IBGE) | pendente |
-| Região de saúde no IPA | **bloqueado** |
+
+### O bloqueio que caiu
+
+Todo o painel agrega por **região de saúde**, e nenhuma base baixada na Sprint 2 trazia esse agrupamento de forma usável. O de/para estava em outra árvore do FTP: a **Base Territorial** do Ministério da Saúde, em `/territorio/tabelas/`, e não em `/dissemin/publicos/`, onde moram os microdados.
+
+Carregada por `scripts/territorio.py`: **645 de 645 municípios de SP** em 62 regiões, sem ambiguidade, e **0 de 5.860.558 internações** ficaram sem região. Com ela existem `VW_IPA_REGIAO` e as demais views por região — e o mapa, o ranking de regiões críticas e as perguntas do Select AI deixaram de estar bloqueados. De quebra vieram nome e coordenada de cada município.
 
 ### O bloqueio aberto
 
-Todo o painel agrega por **região de saúde**, e nenhuma base baixada traz esse agrupamento de forma usável. O SIH só tem código IBGE de município, e o `REGSAUDE` do CNES é texto livre: **56% em branco**, 291 valores distintos, e o município de São Paulo sozinho aparece com `''`, `'0000'`, `'001'`, `'01'`, `'010'`. Apenas **58 dos 645 municípios** têm valor consistente.
-
-Precisa vir da tabela oficial do DATASUS (Modalidade *Documentação* na Transferência de Arquivos). Sem ela não existe `VW_IPA_REGIAO` — e com ela caem o mapa, o ranking de regiões críticas e as perguntas do Select AI.
+O Select AI está montado e validado, mas não responde: a tenancy tem **cota zero** no OCI Generative AI, serviço pago que o Always Free não cobre. Todo modelo volta 404, inclusive pelo OCI CLI com usuário Administrator. Há duas saídas — upgrade da conta ou chave de um provedor externo, uma delas gratuita — em [docs/select-ai.md](docs/select-ai.md#o-bloqueio-do-provedor).
 
 Este e os demais achados estão em [docs/problemas-conhecidos.md](docs/problemas-conhecidos.md).
 

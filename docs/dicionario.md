@@ -552,7 +552,7 @@ SINASC DN cru — declaracoes de nascido vivo
 
 ## SILVER
 
-12 tabelas. 9.049.204 linhas.
+13 tabelas. 9.049.643 linhas.
 
 ### `SLV_DOM_COMPLEXIDADE`
 
@@ -684,16 +684,20 @@ leitos tratados, por estabelecimento
 
 ### `SLV_MUNICIPIO`
 
-dimensao territorial — regiao_saude PENDENTE
+dimensao territorial: nome, regiao de saude e coordenada
 
-**3.473 linhas · 4 colunas**
+**3.473 linhas · 8 colunas**
 
 | Coluna | Tipo | Nulo | Significado |
 |---|---|---|---|
 | `COD_MUNICIPIO` | NUMBER(6) | nao |  |
 | `UF` | VARCHAR2(2) | sim |  |
-| `REGIAO_SAUDE` | VARCHAR2(60) | sim | PENDENTE — depende da tabela oficial do DATASUS |
-| `POPULACAO` | NUMBER | sim |  |
+| `REGIAO_SAUDE` | VARCHAR2(60) | sim | nome da regiao de saude, da Base Territorial do MS |
+| `POPULACAO` | NUMBER | sim | PENDENTE — depende do IBGE |
+| `COD_REGIAO_SAUDE` | VARCHAR2(5) | sim | CO_REGSAUD, codigo oficial de 5 digitos |
+| `NOME_MUNICIPIO` | VARCHAR2(60) | sim | nome do municipio; o SIH so traz o codigo IBGE |
+| `LATITUDE` | NUMBER(10,6) | sim | graus decimais, sede do municipio — para o mapa |
+| `LONGITUDE` | NUMBER(10,6) | sim | graus decimais, sede do municipio — para o mapa |
 
 ### `SLV_NASCIMENTO`
 
@@ -742,6 +746,19 @@ obitos tratados: data DDMMYYYY convertida, idade decodificada
 | `LOCAL_OCORRENCIA` | VARCHAR2(40) | sim |  |
 | `COD_RACA_COR` | VARCHAR2(40) | sim |  |
 
+### `SLV_REGIAO_SAUDE`
+
+as 439 regioes de saude do pais, 62 delas em SP
+
+**439 linhas · 4 colunas**
+
+| Coluna | Tipo | Nulo | Significado |
+|---|---|---|---|
+| `COD_REGIAO_SAUDE` | VARCHAR2(5) | nao | CO_REGSAUD, codigo oficial de 5 digitos |
+| `NOME_REGIAO_SAUDE` | VARCHAR2(60) | nao | nome sem o sufixo ' - UF' que vem no arquivo original |
+| `UF` | VARCHAR2(2) | sim |  |
+| `ATIVA` | CHAR(1) | sim | S quando a regiao esta vigente (CO_STATUS) |
+
 ## GOLD
 
 2 tabelas. 14.793 linhas.
@@ -750,7 +767,7 @@ obitos tratados: data DDMMYYYY convertida, idade decodificada
 
 limiares de classificacao de risco
 
-**4 linhas · 5 colunas**
+**4 linhas · 6 colunas**
 
 | Coluna | Tipo | Nulo | Significado |
 |---|---|---|---|
@@ -759,6 +776,7 @@ limiares de classificacao de risco
 | `IPA_MIN` | NUMBER(10,2) | sim |  |
 | `IPA_MAX` | NUMBER(10,2) | sim |  |
 | `COR` | VARCHAR2(7) | sim |  |
+| `SEMAFORO` | VARCHAR2(10) | sim |  |
 
 ### `GLD_PAINEL_ASSISTENCIAL`
 

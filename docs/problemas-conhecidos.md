@@ -2,18 +2,38 @@
 
 Defeitos dos dados e armadilhas de ferramenta encontrados na construção. Todos verificados nos dados reais, não supostos.
 
-## Bloqueia a Gold
+## Resolvido
 
-### Região de saúde não existe em nenhuma base baixada
+### Região de saúde não existe em nenhuma base de microdado
 
-Todo o painel agrega por **região de saúde**, e nenhuma base traz esse agrupamento de forma usável:
+Era o único bloqueio duro do projeto. Todo o painel agrega por **região de saúde**, e nenhuma base baixada na Sprint 2 trazia esse agrupamento de forma usável:
 
 - O SIH só tem código IBGE de município.
 - O `REGSAUDE` do CNES é texto livre: **56% em branco**, 291 valores distintos, e o município de São Paulo (355030) sozinho aparece com `''`, `'0000'`, `'001'`, `'01'`, `'010'`, `'0100'`, `'013'`. Só **58 dos 645 municípios** têm valor consistente.
 
-`slv_municipio.regiao_saude` está nula nos 3.473 municípios. Sem a tabela oficial do DATASUS (Modalidade *Documentação* na Transferência de Arquivos), **`VW_IPA_REGIAO` não existe** — e com ela caem o mapa, o "Top 5 em alerta" e as perguntas do Select AI sobre regiões.
+**Onde estava o de/para:** em outra árvore do FTP. A ingestão varria `/dissemin/publicos/`, que é onde moram os microdados. A Base Territorial do Ministério da Saúde fica em `/territorio/tabelas/<AAAA>/`, publicada a cada dois meses, e traz três arquivos que resolvem tudo:
 
-É o único bloqueio duro do projeto.
+| Arquivo | Conteúdo |
+|---|---|
+| `rl_municip_regsaud.csv` | município → região de saúde, 5.572 municípios |
+| `tb_regsaud.csv` | código da região → nome, 466 regiões |
+| `tb_municip.csv` | nome do município, UF, latitude, longitude |
+
+**Cobertura:** 645 de 645 municípios de SP, em 62 regiões, sem nenhuma ambiguidade — nenhum município aparece em duas regiões. O 646º registro de `slv_municipio` é o código `350000`, placeholder "Município Ignorado" do DATASUS, que não é município e não tem nenhuma internação.
+
+**Teste que decidiu:** internações sem região. **0 de 5.860.558**, tanto pelo município de residência quanto pelo de internação.
+
+Carregado por `scripts/territorio.py`. Com isso existem `VW_IPA_REGIAO` e as outras seis views da Gold, e o Select AI tem o que responder.
+
+De quebra vieram os **nomes dos municípios** — o SIH só tem código IBGE, e sem nome toda resposta do Select AI sairia como `355030` em vez de `São Paulo` — e as **coordenadas**, que destravam o mapa do protótipo.
+
+## Bloqueia o Select AI
+
+### A tenancy não tem cota de OCI Generative AI
+
+Toda chamada do Select AI volta 404. Não é configuração do banco: o mesmo 404 acontece pelo OCI CLI, com usuário Administrator, e os 51 limites do serviço `ai-generative` estão todos em **0**. Generative AI é serviço pago e a conta `greatminds2026` não tem direito a ele — o Always Free do banco não cobre isso.
+
+Duas saídas, uma delas gratuita. Diagnóstico completo e o caminho de cada uma em [select-ai.md](select-ai.md#o-bloqueio-do-provedor).
 
 ## Defeitos dos arquivos do DATASUS
 

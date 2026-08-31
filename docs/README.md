@@ -10,6 +10,7 @@
 | saber o que cada coluna significa | [dicionario.md](dicionario.md) |
 | refazer a carga do DATASUS | [ingestao.md](ingestao.md) |
 | entender o cálculo do IPA | [gold.md](gold.md) |
+| perguntar em linguagem natural | [select-ai.md](select-ai.md) |
 | saber o que já quebrou e por quê | [problemas-conhecidos.md](problemas-conhecidos.md) |
 | senhas e URLs de acesso | `acesso.md` — fora do git |
 
@@ -24,6 +25,8 @@
 **[catalogo-bases.md](catalogo-bases.md)** — inventário dos 33 arquivos baixados: volume, período e colunas por base. Gerado por `scripts/catalogo.py`.
 
 **[gold.md](gold.md)** — fórmulas do IPA e da permanência média, como foram derivadas da base de referência, limiares de risco e as ressalvas da medida.
+
+**[select-ai.md](select-ai.md)** — as views expostas ao Select AI, a camada semântica que ensina o modelo a acertar, as seis perguntas do contrato respondidas, e o bloqueio de cota do provedor com as duas saídas.
 
 **[powerbi.md](powerbi.md)** — passo a passo de conexão, com os erros já resolvidos. É o documento para circular com quem vai montar o painel.
 
@@ -52,5 +55,6 @@ Os demais são escritos e mantidos à mão.
 | Object Storage | 35 objetos, 417 MB |
 | Bronze | 5 tabelas, 9.045.693 linhas |
 | Silver | 6 tabelas + 6 domínios, sem perda |
-| Gold | 14.789 linhas |
-| Região de saúde | **bloqueado** |
+| Gold | 14.789 linhas + 8 views por região |
+| Região de saúde | 645/645 municípios de SP, 62 regiões |
+| Select AI | montado e validado, aguardando provedor de modelo |
